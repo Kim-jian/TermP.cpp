@@ -22,27 +22,31 @@ int Controller::decide(string e) {
 	char sentry = e[0];
 	switch (sentry) {
 	case 't':
+	{
 		return 0;
-	case 'n':
+	}
+	case 'n': {
 		model.nextPage();
 		return 1;
-	case 'p':
+	}
+	case 'p': {
 		model.prePage();
 		return 1;
-	case 'i':
-		if (e.size()<8||e[e.size()-1]!=')') {
+	}
+	case 'i': {
+		if (e.size() < 8 || e[e.size() - 1] != ')') {
 			model.setState("Format Error. Insert function's format is i(int line, int index, string message).");
 			return 1;
 		}
 		int pos;
 		int current = 2;
-		e.erase(e.size()-1);
+		e.erase(e.size() - 1);
 		vector<string> parameter;
 		while ((pos = e.find(",", current)) != std::string::npos) {
-				int len = pos - current;
-				string result = e.substr(current, len);
-				parameter.push_back(result);
-				current = pos + 1;
+			int len = pos - current;
+			string result = e.substr(current, len);
+			parameter.push_back(result);
+			current = pos + 1;
 		}
 		if (current < 6) {
 			model.setState("Format Error. Insert function's format is i(int line, int index, string message).");
@@ -53,10 +57,61 @@ int Controller::decide(string e) {
 		model.insert(parameter);
 		return 1;
 	}
+	case 'd':
+	{
+		if (e.size() < 8 || e[e.size() - 1] != ')') {
+			model.setState("Format Error. Delete function's format is d(int line, int index, int byte).");
+			return 1;
+		}
+		vector<string> parameter;
+		int pos;
+		int current = 2;
+		e.erase(e.size() - 1);
+		while ((pos = e.find(",", current)) != std::string::npos) {
+			int len = pos - current;
+			string result = e.substr(current, len);
+			parameter.push_back(result);
+			current = pos + 1;
+		}
+		if (current < 6) {
+			model.setState("Format Error. Delete function's format is i(int line, int index, string message).");
+			return 1;
+		}
+		string result = e.substr(current);
+		parameter.push_back(result);
+		model.del(parameter);
+		return 1;
+		break;
+	}
+	case 'c':
+	{
+		if (e.size() < 8 || e[e.size() - 1] != ')') {
+			model.setState("Format Error. Change function's format is d(int line, int index, int byte).");
+			return 1;
+		}
+		vector<string> parameter;
+		int pos;
+		int current = 2;
+		e.erase(e.size() - 1);
+		while ((pos = e.find(",", current)) != std::string::npos) {
+			int len = pos - current;
+			string result = e.substr(current, len);
+			parameter.push_back(result);
+			current = pos + 1;
+		}
+		if (current < 6) {
+			model.setState("Format Error. Change function's format is i(int line, int index, string message).");
+			return 1;
+		}
+		string result = e.substr(current);
+		parameter.push_back(result);
+	}
+
+	}
 }
 
 Controller::Controller() {
-	
+
 }
 
 int Controller::show() {
@@ -67,7 +122,7 @@ int Controller::show() {
 	sc.outputLine(model.getState());
 	sc.outputLine(lineSpliter);
 	sc.output("ют╥б:");
-	string e=sc.inputString();
+	string e = sc.inputString();
 	int next = decide(e);
 	sc.outputLine(lineSpliter);
 	return next;

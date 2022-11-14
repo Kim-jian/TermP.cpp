@@ -15,6 +15,7 @@ private:
 	void arrangePage();
 	vector<string> data;
 	pageManager page;
+	string caseLast();
 	string stateMessage;
 public:
 	vector<string> getBook();
@@ -28,4 +29,6 @@ public:
 	void prePage();
 	void nextPage();
 	void insert(vector<string> parameter);
+	void del(vector<string> parameter);
+	void change(vector<string> parameter);
 };

@@ -9,12 +9,12 @@ void pageManager::setContent(vector<string>& newContent) {
 }
 void pageManager::setPage() {
 	pageManager::book.clear();
+	this->size = 0;
 	int nowLine = 1;
 	string present;
 	for (vector<string>::iterator it = pageManager::content.begin(); it != pageManager::content.end(); it++) {
 		if (nowLine > MAX_LINE) {
 			pageManager::book.push_back(present);
-			size++;
 			it--;
 			present.clear();
 			nowLine = 1;
@@ -27,10 +27,10 @@ void pageManager::setPage() {
 			if (strcmp((*it).c_str()," ")==0) tmp += "\n";
 			else tmp += *it;
 			present += (tmp + "\n");
+			this->size++;
 			nowLine++;
 			if (it+1 == content.end()) {
 				pageManager::book.push_back(present);
-				size++;
 				this->lastLine = nowLine-1;
 				break;
 			}
@@ -48,4 +48,8 @@ int pageManager::getLast() {
 pageManager::pageManager() {
 	size = 0;
 	lastLine = 0;
+}
+
+int pageManager::getSize() {
+	return this->size;
 }

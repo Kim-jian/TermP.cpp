@@ -12,6 +12,7 @@ private:
 public:
 	pageManager();
 	void setContent(vector<string>& newContent);
+	int getSize();
 	void setPage();
 	int getLast();
 	vector<string> get_book();

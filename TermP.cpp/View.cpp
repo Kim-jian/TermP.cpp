@@ -9,6 +9,6 @@ void View::outputLine(std::string msg) {
 }
 std::string View::inputString() {
 	std::string input;
-	std::cin >> input;
+	std::getline(std::cin, input);
 	return input;
 }
