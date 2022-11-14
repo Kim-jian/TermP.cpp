@@ -1,3 +1,4 @@
+//Controller class
 #include "Controller.h"
 
 void Controller::run() {
@@ -17,7 +18,7 @@ void Controller::run() {
 	return;
 }
 
-int Controller::decide(std::vector<char> e) {
+int Controller::decide(string e) {
 	char sentry = e[0];
 	switch (sentry) {
 	case 't':
@@ -28,7 +29,28 @@ int Controller::decide(std::vector<char> e) {
 	case 'p':
 		model.prePage();
 		return 1;
-	default:
+	case 'i':
+		if (e.size()<8||e[e.size()-1]!=')') {
+			model.setState("Format Error. Insert function's format is i(int line, int index, string message).");
+			return 1;
+		}
+		int pos;
+		int current = 2;
+		e.erase(e.size()-1);
+		vector<string> parameter;
+		while ((pos = e.find(",", current)) != std::string::npos) {
+				int len = pos - current;
+				string result = e.substr(current, len);
+				parameter.push_back(result);
+				current = pos + 1;
+		}
+		if (current < 6) {
+			model.setState("Format Error. Insert function's format is i(int line, int index, string message).");
+			return 1;
+		}
+		string result = e.substr(current);
+		parameter.push_back(result);
+		model.insert(parameter);
 		return 1;
 	}
 }
@@ -45,7 +67,7 @@ int Controller::show() {
 	sc.outputLine(model.getState());
 	sc.outputLine(lineSpliter);
 	sc.output("ют╥б:");
-	vector<char> e=sc.inputChar();
+	string e=sc.inputString();
 	int next = decide(e);
 	sc.outputLine(lineSpliter);
 	return next;

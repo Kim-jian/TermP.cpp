@@ -1,32 +1,37 @@
+//Editor의 sub model이다. book을 구성해준다.
 #include "pageManager.h"
-#define MAX_LEN 20
-#define MAX_LINE 75
+#define MAX_LEN 75
+#define MAX_LINE 20
 
 
 void pageManager::setContent(vector<string>& newContent) {
 	pageManager::content = newContent;
 }
 void pageManager::setPage() {
-	int nowLen = 1;
+	pageManager::book.clear();
+	int nowLine = 1;
 	string present;
 	for (vector<string>::iterator it = pageManager::content.begin(); it != pageManager::content.end(); it++) {
-		if (nowLen > MAX_LEN) {
+		if (nowLine > MAX_LINE) {
 			pageManager::book.push_back(present);
+			size++;
+			it--;
 			present.clear();
-			nowLen = 1;
+			nowLine = 1;
 		}
 		else {
 			string tmp;
-			if (nowLen < 10) tmp = "  " + to_string(nowLen);
-			else tmp = " " + to_string(nowLen);
+			if (nowLine < 10) tmp = "  " + to_string(nowLine);
+			else tmp = " " + to_string(nowLine);
 			tmp += "| ";
 			if (strcmp((*it).c_str()," ")==0) tmp += "\n";
 			else tmp += *it;
 			present += (tmp + "\n");
-			nowLen++;
+			nowLine++;
 			if (it+1 == content.end()) {
 				pageManager::book.push_back(present);
 				size++;
+				this->lastLine = nowLine-1;
 				break;
 			}
 		}
@@ -35,6 +40,12 @@ void pageManager::setPage() {
 vector<string> pageManager::get_book() {
 	return pageManager::book;
 }
+
+int pageManager::getLast() {
+	return this->lastLine;
+}
+
 pageManager::pageManager() {
 	size = 0;
+	lastLine = 0;
 }

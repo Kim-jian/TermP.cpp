@@ -12,12 +12,14 @@ private:
 	fstream myfile;
 	string s;
 	void makePage();
+	void arrangePage();
 	vector<string> data;
 	pageManager page;
 	string stateMessage;
 public:
 	vector<string> getBook();
 	string showBook();
+	void setState(string msg);
 	string getState();
 	bool loadFile();
 	bool makeFile();
@@ -25,4 +27,5 @@ public:
 	~Editor();
 	void prePage();
 	void nextPage();
+	void insert(vector<string> parameter);
 };
