@@ -3,23 +3,25 @@
 #include "fstream"
 #include "string"
 #include "vector"
-#include "pageManager.h"
 using namespace std;
 
 class Editor {
 private:
+	bool IsPageChange();
 	int nowPage;
+	int lastLine;
 	fstream myfile;
+	fstream tmpFile;
 	string s;
-	void makePage();
 	void arrangePage();
 	vector<string> data;
-	pageManager page;
-	string caseLast();
+	vector<string> book;
+	void setPage();
 	string stateMessage;
 public:
-	vector<string> getBook();
-	string showBook();
+	bool IsBookExist;
+	int getPage();
+	vector<string> showBook();
 	void setState(string msg);
 	string getState();
 	bool loadFile();

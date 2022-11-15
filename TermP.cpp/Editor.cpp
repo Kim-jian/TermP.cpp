@@ -9,7 +9,10 @@
 
 Editor::Editor() {
 	Editor::nowPage = 0;
+	Editor::IsBookExist = false;
 	Editor::stateMessage = "This Page is 1 Page.";
+	Editor::tmpFile.open("tmpfile.txt");
+	Editor::lastLine = 0;
 }
 
 void Editor::setState(string msg) {
@@ -23,19 +26,71 @@ string Editor::getState() {
 
 Editor::~Editor() {
 	Editor::myfile.close();
-}
-void Editor::makePage() {
-	Editor::page.setContent(data);
-	Editor::page.setPage();
+	remove("tmpFile.txt");
 }
 
-vector<string> Editor::getBook() {
-	return Editor::page.get_book();
+void Editor::setPage() {
+	s.clear();
+	book.clear();
+	ofstream otempo;
+	otempo.open("tmpFile.txt",ios::out);
+	for (vector<string>::iterator it = data.begin(); it != data.end(); it++) {
+		otempo << (*it) + "\n";
+	}
+	otempo.close();
+	int nowLine = 1;
+	string present;
+	string page;
+	ifstream tempo;
+	tempo.open("tmpFile.txt", ifstream::in);
+	while (getline(tempo, present)) {
+		if (nowLine < 10) page += "  " + to_string(nowLine);
+		else page += " " + to_string(nowLine);
+		page += "| ";
+		page += present;
+		page += "\n";
+		nowLine++;
+		present.clear();
+		if (nowLine > MAX_LINE) {
+			book.push_back(page);
+			page.clear();
+			nowLine = 1;
+		}
+	}
+	if (page.size() != 0) {//마지막 페이지 재구성
+		page.clear();
+		nowLine = 1;
+		for (int j = 0; j < MAX_LINE; j++) {
+			if (nowLine < 10) page += "  " + to_string(nowLine);
+			else page += " " + to_string(nowLine);
+			page += "| ";
+			if (data.size() <= MAX_LINE) {
+				page += data[j];
+				if (j + 1 >= data.size()) {
+					break;
+				}
+			}
+			else page += data[data.size() - MAX_LINE+j];
+			page += "\n";
+			nowLine++;
+		}
+		book.push_back(page);
+	}
+	if (book.size() > 0) Editor::IsBookExist = true;
+	tempo.close();
+}//book 구성 완료
+
+#pragma warning(push)
+#pragma warning(disable: 6031)
+bool Editor::IsPageChange() {
+	return (book.size() <= nowPage) ? true: false;
 }
+#pragma warning(pop)
 
 bool Editor::loadFile() {
 	Editor::myfile.open("test.txt");
 	if (Editor::myfile.is_open()) {
+		Editor::makeFile();
 		return true;
 	}
 	return false;
@@ -65,38 +120,31 @@ bool Editor::makeFile() {
 			data.push_back(text);
 		}
 		s.clear();
-		Editor::makePage();
+		s = data[data.size() - 1];
+		Editor::lastLine = s.size();
+		int i = s.size();
+		while (i <= 75) {
+			s += " ";
+			i++;
+		}
+		data[data.size() - 1] = s;//for last Insert
+
+		Editor::setPage();
 		return true;
 	}
 	return false;
 }//이 시점에서 data는 한 문장씩 끊어서 file을 가지고 있음
 
-string Editor::caseLast() {
-	int i = data.size()- MAX_LINE;
-	int j = 1;
-	string s = "  "+to_string(j++) + "| "+this->data[i++]+"\n";
-	while (i < data.size()) {
-		if(j<10) s+= "  " + to_string(j++) + "| " + this->data[i++] + "\n";
-		else s+= " "+to_string(j++) + "| " + this->data[i++] + "\n";
-	}
-	return s;
+int Editor::getPage() {
+	return this->nowPage;
 }
 
-string Editor::showBook() {
-	vector<string> tmp = Editor::getBook();
-	switch (tmp.size() > 0) {
-	case 1 :
-		if (nowPage == this->getBook().size()-1) {
-			return caseLast();
-		}
-		return tmp[Editor::nowPage];
-	case 0: 
-		return "";
-	}
+vector<string> Editor::showBook() {
+	return this->book;
 }
 
 void Editor::nextPage() {
-	if (Editor::nowPage + 1 >= (int)(getBook().size())) {
+if (Editor::nowPage+1 >= book.size()) {
 		Editor::setState("This Page is Last Page Already.");
 	}
 	else {
@@ -120,13 +168,10 @@ void Editor::insert(vector<string> e) {
 	try {
 		line = stoi(e[0]);
 		int MAX = MAX_LINE;
-		if (data.size() == 0) {
-			MAX = 1;
+		if (data.size() < MAX_LINE) {
+			MAX = data.size();
 		}
-		else if (nowPage + 1 == (getBook().size())) {
-			MAX = page.getLast();
-		}
-		if (line > MAX || line <= 0) {
+		if ((line > MAX || line <= 0)&&IsBookExist) {
 			throw out_of_range("Line parameters are not appropriate.");
 		}
 	}
@@ -141,10 +186,9 @@ void Editor::insert(vector<string> e) {
 	try {
 		index = stoi(e[1]);
 		msg = e[2];
-		if (index <= 0 || index > MAX_LEN) {
+		if (index <= 0 || index >= MAX_LEN) {
 			throw std::out_of_range("Index parameters are not appropriate.");
-		}
-		index--;
+		}//삽입은 74까지. 75 삽입은 다음 문장에 삽입임
 	}
 	catch (std::invalid_argument e) {
 		Editor::setState("Index must be an integer type.");
@@ -154,77 +198,66 @@ void Editor::insert(vector<string> e) {
 		Editor::setState(e.what());
 		return;
 	}
-	if (data.size() == 0) {
-		data.push_back(msg);
+	if (Editor::IsBookExist) {
+		if (nowPage != book.size() - 1) {
+			int i = MAX_LINE * nowPage;
+			for (int k = 0; k < line - 1; k++) i++;
+			s = data[i];
+			s.insert(index, msg);
+			data[i] = s;
+		}
+		else {
+			int lastLine = data.size() - MAX_LINE;
+			if (data.size() <= MAX_LINE) {
+				lastLine = 0;
+			}
+			for (int i = 0; i < line - 1; i++) {
+				lastLine++;
+			}
+			s = data[lastLine];
+			s.insert(index, msg);
+			int refix = s.size() - 1;
+			while (s[refix] == ' ') {
+				s.erase(refix);
+				refix--;
+			}
+			data[lastLine] = s;
+		}//마지막 case시 저장된 lastLine의 data부터 파일 끝까지 data 긁어옴
+		arrangePage();
+		Editor::setState("Insert function Complete.");
 	}
 	else {
-		string s = Editor::data[line - 1 + nowPage * 20];
-		if (strlen(s.c_str()) < 75) {
-			for (int i = strlen(s.c_str()); i < MAX_LEN; i++) {
-				s += " ";
-			}
-			s.replace(index, msg.size(), msg);
-			int i = s.size()-1;
-			while (s[i] == ' ') {
-				s.erase(i);
-				i--;
-			}
-			Editor::data[line - 1 + nowPage * 20] = s;
-		}//마지막 쪽의 마지막 문장임
-		else if (index + msg.size() > MAX_LEN) {
-			int size = index + msg.size();
-			int i = 0;
-			bool over = false;
-			while (size > MAX_LEN) {
-				s += (data[line + i + nowPage * 20]);
-				i++;
-				if (line + i + nowPage * 20 > data.size()) {
-					size -= data[data.size()].size();
-					over = true;
-					break;
-				}
-				size -= MAX_LEN;
-			}
-			if (over) {
-				while (size > 0) {
-					s += " ";
-					if (s.size() % MAX_LEN == 0) {
-						s += "\n";
-					}
-					size--;
-				}
-			}
-			s.replace(index, msg.size(), msg);
-			int j = 0;
-			for (int i = 0; i < s.size(); j++) {
-				string text = s.substr(i, MAX_LEN);
-				i += text.size();
-				if (isspace(s[i])) {
-					i++;
-				}
-				data[line - 1 + j + nowPage * 20] = text;
-			}
-		}//입력한 index부터 문자의 길이가 다음 문장을 침범할 경우
+		if (line != 1) {
+			Editor::setState("Book is Empty. Add 1 Line first.");
+		}
 		else {
-			s.replace(index, msg.size(), msg);
-			Editor::data[line - 1 + nowPage * 20] = s;
+			data.push_back(msg);
+			arrangePage();
+			Editor::setState("Insert function Complete.");
 		}
 	}
-	Editor::arrangePage();
-	Editor::setState("Insert function Complete.");
 }
 
 void Editor::arrangePage() {
+	Editor::s.clear();
 	string text;
 	for (vector<string>::iterator it = Editor::data.begin(); it != data.end(); it++) {
 		text = *it;
-		if (strcmp(text.c_str(), "") == 0) {
-			int left = s.size() % MAX_LEN;
-			for (int i = 0; i < MAX_LEN - left + 1; i++) {
-				s += " ";
-			}//개행 입력시 한줄 바꿈
+		if (it + 1 == data.end()) {
+			int i = text.size()-1;
+			while (text[i] == ' ') {
+				text.erase(i);
+				i--;
+				if (i <= 0) {
+					text = "";
+					break;
+				}
+			}
 		}
-		else  s += text + " ";
+		if (strcmp(text.c_str(), "") == 0) {
+			break;
+		}
+		else  s += text;
 	}
 	//개행문자를 공백문자로 대체
 	//이 시점에서 s에 모든 test.txt가 한 문장으로 처리
@@ -232,14 +265,21 @@ void Editor::arrangePage() {
 	for (int i = 0; i < s.size();) {
 		string text = s.substr((int)i, (int)MAX_LEN);
 		i += text.size();
-		if (isspace(s[i])) {
-			i++;
-		}
 		data.push_back(text);
 	}
+	if (data.size() > 0) {
+		s = data[data.size() - 1];
+		Editor::lastLine = s.size();
+		int i = s.size();
+		while (i < 75) {
+			s += " ";
+			i++;
+		}
+		data[data.size() - 1] = s;//for last Insert
+	}
 	Editor::s.clear();
-	Editor::makePage();
-}
+	Editor::setPage();
+}//구현 완료
 
 void Editor::del(vector<string> parameter) {
 	int line;
@@ -248,8 +288,8 @@ void Editor::del(vector<string> parameter) {
 	try {
 		line = stoi(parameter[0]);
 		int MAX = MAX_LINE;
-		if (nowPage + 1 == (getBook().size())) {
-			MAX = page.getLast();
+		if (data.size() < MAX_LINE) {
+			MAX = data.size();
 		}
 		if (line > MAX || line <= 0) {
 			throw out_of_range("Line parameters are not appropriate.");
@@ -265,7 +305,13 @@ void Editor::del(vector<string> parameter) {
 	}
 	try {
 		index = stoi(parameter[1]);
-		if (index <= 0 || index > MAX_LEN) {
+		int MAX = MAX_LEN;
+		if (nowPage == book.size() - 1) {
+			if (line == 20) {
+				MAX = Editor::lastLine;
+			}
+		}
+		if (index <= 0 || index > MAX) {
 			throw std::out_of_range("Index parameters are not appropriate.");
 		}
 	}
@@ -279,8 +325,27 @@ void Editor::del(vector<string> parameter) {
 	}
 	try {
 		byte = stoi(parameter[2]);
-		int totalSize;
-		totalSize = (this->page.getSize() - nowPage * MAX_LINE - (line - 1)) * MAX_LEN;  //남은 line 수*한 라인당 바이트
+		int totalSize=0;
+		if (nowPage == book.size() - 1)
+		{
+			if (line == 20) {
+				totalSize = Editor::lastLine;
+			}
+			else {
+				if (data.size()<=MAX_LINE) {
+					for (vector<string>::iterator it = data.begin(); it != data.end(); it++) {
+						totalSize += (*it).size();
+					}
+				}
+				else {
+					for (int i = 0; i < 20; i++) {
+						totalSize += data[data.size() - 1 - i].size();
+					}
+				}
+				totalSize -= (line - 1) * MAX_LEN;
+			}
+		}
+		else totalSize = (this->data.size() - nowPage * MAX_LINE - (line - 1)) * MAX_LEN;  //남은 line 수*한 라인당 바이트
 		totalSize -= index;
 		if (byte <= 0 || byte > totalSize) {
 			throw out_of_range("Byte parameters are not appropriate.(Bound Out)");
@@ -294,26 +359,62 @@ void Editor::del(vector<string> parameter) {
 		Editor::setState(e.what());
 		return;
 	}
-	string tmp;
-	for (vector<string>::iterator it = data.begin(); it != data.end(); it++) {
-		tmp += (*it);
-	}
-	tmp.erase(index - 1 + (nowPage)*MAX_LEN * MAX_LINE + (line - 1) * MAX_LEN, byte);//현재 시점 계산식 참고
-	data.clear();
-	if (strcmp(tmp.c_str(), "")) {
-		for (int i = 0; i < tmp.size();) {
-			string text = tmp.substr((int)i, (int)MAX_LEN);
-			i += text.size();
-			if (isspace(tmp[i])) {
-				i++;
+		string tmp;
+		if (nowPage != book.size() - 1) {
+			for (vector<string>::iterator it = data.begin(); it != data.end(); it++) {
+				tmp += (*it);
 			}
-			data.push_back(text);
+			tmp.erase(index - 1 + (nowPage)*MAX_LEN * MAX_LINE + (line - 1) * MAX_LEN, byte);//현재 시점 계산식 참고
+			data.clear();
+			if (strcmp(tmp.c_str(), "")) {
+				for (int i = 0; i < tmp.size();) {
+					string text = tmp.substr((int)i, (int)MAX_LEN);
+					i += text.size();
+					if (isspace(tmp[i])) {
+						i++;
+					}
+					data.push_back(text);
+				}
+			}
+		}//마지막 페이지가 아닐 때,
+		else {
+			int row = data.size() - MAX_LINE;
+			if (data.size() <= MAX_LINE) {
+				row = 0;
+			}
+			while (row < data.size()) {
+				tmp += data[row++];
+			}
+			tmp.erase(index - 1 + (line - 1) * MAX_LEN, byte);
+			row = data.size();
+			for (int i = 0; (i < MAX_LINE) && (i < row); i++) {
+				data.pop_back();
+			}
+			if (strcmp(tmp.c_str(), "")) {
+				for (int i = 0; i < tmp.size();) {
+					string text = tmp.substr((int)i, (int)MAX_LEN);
+					i += text.size();
+					if (isspace(tmp[i])) {
+						i++;
+					}
+					data.push_back(text);
+				}
+			}
 		}
-	}
-	Editor::arrangePage();
-	Editor::setState("Delete function Complete.");
+		Editor::arrangePage();
+		if (book.size() != 0) {
+			while (IsPageChange()) {
+				this->nowPage--;
+			}//삭제로 인해 page가 바뀌었다면
+			Editor::setState("Delete function Complete.");
+		}
+		else {
+			Editor::IsBookExist = false;
+			Editor::nowPage = 0;
+			Editor::setState("Delete All. If you want Insert, please insert 1 Line First.");
+		}
 }
 
 void Editor::change(vector<string> parameter) {
-	
+
 }

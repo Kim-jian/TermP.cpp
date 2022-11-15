@@ -1,6 +1,5 @@
 #include "Controller.h"
-int main() {
+void main() {
 	Controller appC;
 	appC.run();
-	return 0;
 }

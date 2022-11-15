@@ -1,16 +1,13 @@
 //Controller class
 #include "Controller.h"
 
+#define MAX_LINE 20
+
 void Controller::run() {
 	if (!model.loadFile()) {
 		sc.outputLine("![Error] There is no File to perform Program.");
 		return;
 	}
-	if (!model.makeFile()) {
-		sc.outputLine("![Error] 파일을 로드하는 중에 예상치 못한 오류가 발생했습니다.");
-		return;
-	}
-	book = model.getBook();
 	int k = show();
 	while (k) {
 		k = show();
@@ -23,6 +20,7 @@ int Controller::decide(string e) {
 	switch (sentry) {
 	case 't':
 	{
+		model.~Editor();
 		return 0;
 	}
 	case 'n': {
@@ -34,7 +32,7 @@ int Controller::decide(string e) {
 		return 1;
 	}
 	case 'i': {
-		if (e.size() < 8 || e[e.size() - 1] != ')') {
+		if (e.size() < 8 || e[e.size() - 1] != ')'||e[1]!='(') {
 			model.setState("Format Error. Insert function's format is i(int line, int index, string message).");
 			return 1;
 		}
@@ -47,6 +45,9 @@ int Controller::decide(string e) {
 			string result = e.substr(current, len);
 			parameter.push_back(result);
 			current = pos + 1;
+			if (parameter.size() >= 2) {
+				parameter.push_back(e.substr(current, e.size() - 1));
+			}//이미 2개 찾았으면 그 뒤에 ,는 전부 입력할 string
 		}
 		if (current < 6) {
 			model.setState("Format Error. Insert function's format is i(int line, int index, string message).");
@@ -59,7 +60,7 @@ int Controller::decide(string e) {
 	}
 	case 'd':
 	{
-		if (e.size() < 8 || e[e.size() - 1] != ')') {
+		if (e.size() < 8 || e[e.size() - 1] != ')' || e[1] != '(') {
 			model.setState("Format Error. Delete function's format is d(int line, int index, int byte).");
 			return 1;
 		}
@@ -74,7 +75,7 @@ int Controller::decide(string e) {
 			current = pos + 1;
 		}
 		if (current < 6) {
-			model.setState("Format Error. Delete function's format is i(int line, int index, string message).");
+			model.setState("Format Error. Delete function's format is d(int line, int index, int byte).");
 			return 1;
 		}
 		string result = e.substr(current);
@@ -85,7 +86,7 @@ int Controller::decide(string e) {
 	}
 	case 'c':
 	{
-		if (e.size() < 8 || e[e.size() - 1] != ')') {
+		if (e.size() < 8 || e[e.size() - 1] != ')' || e[1] != '(') {
 			model.setState("Format Error. Change function's format is d(int line, int index, int byte).");
 			return 1;
 		}
@@ -105,17 +106,18 @@ int Controller::decide(string e) {
 		}
 		string result = e.substr(current);
 		parameter.push_back(result);
+		return 1;
 	}
-
 	}
 }
 
-Controller::Controller() {
-
-}
 
 int Controller::show() {
-	sc.output(Controller::model.showBook());
+	Controller::page = model.getPage();
+	if (model.IsBookExist) {
+		Controller::book = model.showBook();
+		sc.outputLine(book[page]);
+	}
 	sc.outputLine(lineSpliter);
 	sc.outputLine(menu);
 	sc.outputLine(lineSpliter);

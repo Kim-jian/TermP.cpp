@@ -22,13 +22,11 @@
     <ClCompile Include="Controller.cpp" />
     <ClCompile Include="Editor.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="pageManager.cpp" />
     <ClCompile Include="View.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Controller.h" />
     <ClInclude Include="Editor.h" />
-    <ClInclude Include="pageManager.h" />
     <ClInclude Include="View.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
