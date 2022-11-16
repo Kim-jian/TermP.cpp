@@ -3,24 +3,30 @@
 
 #define MAX_LINE 20
 
+
+#pragma warning(push)
+#pragma warning(disable:6031)
 void Controller::run() {
 	if (!model.loadFile()) {
 		sc.outputLine("![Error] There is no File to perform Program.");
+		getchar();
 		return;
 	}
 	int k = show();
 	while (k) {
 		k = show();
 	}
-	return;
+	sc.outputLine("Program was terminated. Press Any Key to close this Window.");
+	getchar();
 }
+#pragma warning(pop)
 
 int Controller::decide(string e) {
 	char sentry = e[0];
 	switch (sentry) {
 	case 't':
 	{
-		model.~Editor();
+		model.terminal();
 		return 0;
 	}
 	case 'n': {
@@ -32,7 +38,7 @@ int Controller::decide(string e) {
 		return 1;
 	}
 	case 'i': {
-		if (e.size() < 8 || e[e.size() - 1] != ')'||e[1]!='(') {
+		if (e.size() < 8 || e[e.size() - 1] != ')' || e[1] != '(') {
 			model.setState("Format Error. Insert function's format is i(int line, int index, string message).");
 			return 1;
 		}
@@ -82,7 +88,6 @@ int Controller::decide(string e) {
 		parameter.push_back(result);
 		model.del(parameter);
 		return 1;
-		break;
 	}
 	case 'c':
 	{

@@ -19,6 +19,7 @@ private:
 	void setPage();
 	string stateMessage;
 public:
+	void terminal();
 	bool IsBookExist;
 	int getPage();
 	vector<string> showBook();
@@ -27,7 +28,6 @@ public:
 	bool loadFile();
 	bool makeFile();
 	Editor();
-	~Editor();
 	void prePage();
 	void nextPage();
 	void insert(vector<string> parameter);

@@ -24,10 +24,7 @@ string Editor::getState() {
 	return stateMessage;
 }
 
-Editor::~Editor() {
-	Editor::myfile.close();
-	remove("tmpFile.txt");
-}
+
 
 void Editor::setPage() {
 	s.clear();
@@ -259,7 +256,6 @@ void Editor::arrangePage() {
 		}
 		else  s += text;
 	}
-	//개행문자를 공백문자로 대체
 	//이 시점에서 s에 모든 test.txt가 한 문장으로 처리
 	Editor::data.clear();
 	for (int i = 0; i < s.size();) {
@@ -417,4 +413,20 @@ void Editor::del(vector<string> parameter) {
 
 void Editor::change(vector<string> parameter) {
 
+}
+
+
+void Editor::terminal() {
+	ofstream save("test.txt");
+	ifstream forR("tmpFile.txt");
+	while (!forR.eof()) {
+		string text;
+		getline(forR,text);
+		save << text;
+	}
+	forR.close();
+	save.close();
+	myfile.close();
+	remove("tmpFile.txt");
+	setState("Program was terminated. TextFile which you wrote was saved in your file.");
 }
