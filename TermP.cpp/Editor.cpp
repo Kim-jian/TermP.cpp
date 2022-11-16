@@ -1,7 +1,5 @@
 //model class이며, 파일을 받아오고, pageManager에게 받아온 파일을 Book화 시킨다.
-//그리고 pageManager의 book화된 파일을 컨트롤한다.
 //book을 edit하기 위한 vector<string>을 하나 가지고 있는다.
-//file을 edit하기 위한 class, pageManager를 Controller의 명령에 따라 작동시킨다.
 #include "Editor.h"
 
 #define MAX_LEN 75
@@ -12,7 +10,13 @@ Editor::Editor() {
 	Editor::IsBookExist = false;
 	Editor::stateMessage = "This Page is 1 Page.";
 	Editor::tmpFile.open("tmpfile.txt");
+	Editor::tmpFile.close();
 	Editor::lastLine = 0;
+}
+
+
+int Editor::getPage() {
+	return this->nowPage;
 }
 
 void Editor::setState(string msg) {
@@ -75,7 +79,7 @@ void Editor::setPage() {
 	}
 	if (book.size() > 0) Editor::IsBookExist = true;
 	tempo.close();
-}//book 구성 완료
+}//book 구성 완료  book을 구성하는 함수이다.
 
 #pragma warning(push)
 #pragma warning(disable: 6031)
@@ -83,6 +87,8 @@ bool Editor::IsPageChange() {
 	return (book.size() <= nowPage) ? true: false;
 }
 #pragma warning(pop)
+//삭제 과정중 page가 밀려 book의 size가 변화시 타겟팅하는
+//nowPage도 한칸 줄어야 한다. 그 check를 위한 함수
 
 bool Editor::loadFile() {
 	Editor::myfile.open("test.txt");
@@ -131,14 +137,13 @@ bool Editor::makeFile() {
 	}
 	return false;
 }//이 시점에서 data는 한 문장씩 끊어서 file을 가지고 있음
+/*load file하는 함수이다. data 벡터에 75바이트 단위로 끊어서
+test 파일을 저장한다.*/
 
-int Editor::getPage() {
-	return this->nowPage;
-}
 
-vector<string> Editor::showBook() {
+vector<string> Editor::getBook() {
 	return this->book;
-}
+}//정리된 tmpFile을 출력형식에 맞추어 저장한 book을 반환하는 getter.
 
 void Editor::nextPage() {
 if (Editor::nowPage+1 >= book.size()) {
@@ -426,6 +431,7 @@ void Editor::terminal() {
 	}
 	forR.close();
 	save.close();
+	tmpFile.close();
 	myfile.close();
 	remove("tmpFile.txt");
 	setState("Program was terminated. TextFile which you wrote was saved in your file.");

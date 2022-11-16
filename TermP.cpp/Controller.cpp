@@ -120,7 +120,7 @@ int Controller::decide(string e) {
 int Controller::show() {
 	Controller::page = model.getPage();
 	if (model.IsBookExist) {
-		Controller::book = model.showBook();
+		Controller::book = model.getBook();
 		sc.outputLine(book[page]);
 	}
 	sc.outputLine(lineSpliter);

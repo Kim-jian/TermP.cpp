@@ -22,7 +22,7 @@ public:
 	void terminal();
 	bool IsBookExist;
 	int getPage();
-	vector<string> showBook();
+	vector<string> getBook();
 	void setState(string msg);
 	string getState();
 	bool loadFile();
