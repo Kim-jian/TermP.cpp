@@ -91,8 +91,8 @@ int Controller::decide(string e) {
 	}
 	case 'c':
 	{
-		if (e.size() < 8 || e[e.size() - 1] != ')' || e[1] != '(') {
-			model.setState("Format Error. Change function's format is d(int line, int index, int byte).");
+		if (e.size() < 6 || e[e.size() - 1] != ')' || e[1] != '(') {
+			model.setState("Format Error. Change function's format is c(string msg, string changeMsg).");
 			return 1;
 		}
 		vector<string> parameter;
@@ -105,13 +105,31 @@ int Controller::decide(string e) {
 			parameter.push_back(result);
 			current = pos + 1;
 		}
-		if (current < 6) {
+		if (current < 4) {
 			model.setState("Format Error. Change function's format is i(int line, int index, string message).");
 			return 1;
 		}
 		string result = e.substr(current);
 		parameter.push_back(result);
+		model.change(parameter);
 		return 1;
+	}
+	case 's': {
+		if (e.size() < 4 || e[e.size() - 1] != ')' || e[1] != '(') {
+			model.setState("Format Error. Search function's format is s(string message).");
+			return 1;
+		}
+		e.erase(e.size() - 1);
+		e.erase(0, 2);
+		string searched = model.search(e);
+		if (searched != "") {
+			sc.outputLine(lineSpliter);
+			sc.outputLine(searched);
+		}
+		return 1;
+	}
+	default: {
+		model.setState("Text Edit Program can service\ni: Insert\nd: Delete\ns: Search\nn: Next Page\np: Previous Page\nt: Terminate.");
 	}
 	}
 }

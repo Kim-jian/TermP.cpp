@@ -9,8 +9,6 @@ Editor::Editor() {
 	Editor::nowPage = 0;
 	Editor::IsBookExist = false;
 	Editor::stateMessage = "This Page is 1 Page.";
-	Editor::tmpFile.open("tmpfile.txt");
-	Editor::tmpFile.close();
 	Editor::lastLine = 0;
 }
 
@@ -245,7 +243,7 @@ void Editor::arrangePage() {
 	string text;
 	for (vector<string>::iterator it = Editor::data.begin(); it != data.end(); it++) {
 		text = *it;
-		if (it + 1 == data.end()) {
+		if (text.size()!=0) {
 			int i = text.size()-1;
 			while (text[i] == ' ') {
 				text.erase(i);
@@ -312,6 +310,7 @@ void Editor::del(vector<string> parameter) {
 				MAX = Editor::lastLine;
 			}
 		}
+
 		if (index <= 0 || index > MAX) {
 			throw std::out_of_range("Index parameters are not appropriate.");
 		}
@@ -417,7 +416,54 @@ void Editor::del(vector<string> parameter) {
 }
 
 void Editor::change(vector<string> parameter) {
+	string msg = parameter[0];
+	string change = parameter[1];
+	fstream tmpStream("tmpFile.txt");
+	data.clear();
+	while (!tmpStream.eof()) {
+		string tmp;
+		getline(tmpStream,tmp);
+		while (tmp.find(msg) != string::npos) {
+			tmp.replace(tmp.find(msg), msg.size(), change);
+		}
+		data.push_back(tmp);
+	}
+	tmpStream.close();
+	this->arrangePage();
+	Editor::setState("changed Complete. " + msg + "has been changed: " + change);
+}
 
+string Editor::search(string parameter) {
+	string searching = this->book[nowPage];
+	bool find = false;
+	int serLine = 1;
+	int serPage = 1;
+	for (vector<string>::iterator it = data.begin(); it != data.end(); it++) {
+		string temp = (*it);
+		if (temp.find(parameter) != string::npos) {
+			find = true;
+			break;
+		}
+		serLine++;
+		if (serLine > 20) {
+			serPage++;
+			serLine = 1;
+		}
+	}
+	if (find) {
+		if (serPage == book.size()) {
+			searching.replace(5, parameter.size(), parameter);
+			setState("Search " + parameter + ". Please look at 1 Line 1 index.\n" + parameter + " was searched in " + to_string(serLine) + " Line from Last update Line");
+			return searching;
+		}
+		searching.replace(5, parameter.size(), parameter);
+		setState("Search " + parameter + ". Please look at 1 Line 1 index.\n"+parameter+" was searched in "+to_string(serPage)+" Page, " + to_string(serLine) + " Line");
+		return searching;
+	}
+	else {
+		setState("The following string could not be found within the page: " + parameter);
+		return "";
+	}
 }
 
 

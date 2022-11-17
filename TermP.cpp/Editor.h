@@ -33,4 +33,5 @@ public:
 	void insert(vector<string> parameter);
 	void del(vector<string> parameter);
 	void change(vector<string> parameter);
+	string search(string parameter);
 };
