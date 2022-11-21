@@ -1,6 +1,7 @@
 //View Class
 #include "View.h"
 
+
 void View::output(std::string msg) {
 	std::cout << msg;
 }

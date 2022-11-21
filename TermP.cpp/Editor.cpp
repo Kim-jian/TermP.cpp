@@ -5,6 +5,7 @@
 #define MAX_LEN 75
 #define MAX_LINE 20
 
+
 Editor::Editor() {
 	Editor::nowPage = 0;
 	Editor::IsBookExist = false;
@@ -12,6 +13,9 @@ Editor::Editor() {
 	Editor::lastLine = 0;
 }
 
+bool Editor::BookExist() {
+	return this->IsBookExist;
+}
 
 int Editor::getPage() {
 	return this->nowPage;
@@ -28,8 +32,9 @@ string Editor::getState() {
 
 
 
+
+
 void Editor::setPage() {
-	s.clear();
 	book.clear();
 	ofstream otempo;
 	otempo.open("tmpFile.txt",ios::out);
@@ -56,6 +61,7 @@ void Editor::setPage() {
 			nowLine = 1;
 		}
 	}
+	tempo.close();
 	if (page.size() != 0) {//마지막 페이지 재구성
 		page.clear();
 		nowLine = 1;
@@ -63,7 +69,7 @@ void Editor::setPage() {
 			if (nowLine < 10) page += "  " + to_string(nowLine);
 			else page += " " + to_string(nowLine);
 			page += "| ";
-			if (data.size() <= MAX_LINE) {
+			if (data.size() < MAX_LINE) {
 				page += data[j];
 				if (j + 1 >= data.size()) {
 					break;
@@ -76,7 +82,6 @@ void Editor::setPage() {
 		book.push_back(page);
 	}
 	if (book.size() > 0) Editor::IsBookExist = true;
-	tempo.close();
 }//book 구성 완료  book을 구성하는 함수이다.
 
 #pragma warning(push)
@@ -91,14 +96,21 @@ bool Editor::IsPageChange() {
 bool Editor::loadFile() {
 	Editor::myfile.open("test.txt");
 	if (Editor::myfile.is_open()) {
+		ifstream tmp("test.txt");
+		string s;
+		getline(tmp, s);
+		if (s == "") {
+			tmp.close();
+			return false;
+		}
+		tmp.close();
 		Editor::makeFile();
 		return true;
 	}
 	return false;
 }
-bool Editor::makeFile() {
-	if (Editor::myfile.is_open()) {
-		Editor::s.clear();
+void Editor::makeFile() {
+		string s;
 		while (!Editor::myfile.eof()) {
 			string text;
 			getline(myfile, text);
@@ -113,7 +125,7 @@ bool Editor::makeFile() {
 		}
 		//이 시점에서 s에 모든 test.txt가 한 문장으로 처리
 		for (int i = 0; i < s.size();) {
-			string text = s.substr((int)i, (int)MAX_LEN);
+			string text = s.substr(i, MAX_LEN);
 			i += text.size();
 			if (isspace(s[i])) {
 				i++;
@@ -131,9 +143,7 @@ bool Editor::makeFile() {
 		data[data.size() - 1] = s;//for last Insert
 
 		Editor::setPage();
-		return true;
-	}
-	return false;
+		myfile.close();
 }//이 시점에서 data는 한 문장씩 끊어서 file을 가지고 있음
 /*load file하는 함수이다. data 벡터에 75바이트 단위로 끊어서
 test 파일을 저장한다.*/
@@ -161,17 +171,18 @@ void Editor::prePage() {
 		Editor::setState("This Page is " + to_string(nowPage + 1) + " Page.");
 	}
 }
-void Editor::insert(vector<string> e) {
+void Editor::insert(vector<string> parameter) {
 	int line;
 	string msg;
 	int index;
+	string s;
 	try {
-		line = stoi(e[0]);
+		line = stoi(parameter[0]);
 		int MAX = MAX_LINE;
 		if (data.size() < MAX_LINE) {
 			MAX = data.size();
 		}
-		if ((line > MAX || line <= 0)&&IsBookExist) {
+		if (line > MAX || line <= 0) {
 			throw out_of_range("Line parameters are not appropriate.");
 		}
 	}
@@ -184,8 +195,8 @@ void Editor::insert(vector<string> e) {
 		return;
 	}
 	try {
-		index = stoi(e[1]);
-		msg = e[2];
+		index = stoi(parameter[1]);
+		msg = parameter[2];
 		if (index <= 0 || index >= MAX_LEN) {
 			throw std::out_of_range("Index parameters are not appropriate.");
 		}//삽입은 74까지. 75 삽입은 다음 문장에 삽입임
@@ -239,7 +250,7 @@ void Editor::insert(vector<string> e) {
 }
 
 void Editor::arrangePage() {
-	Editor::s.clear();
+	string s;
 	string text;
 	for (vector<string>::iterator it = Editor::data.begin(); it != data.end(); it++) {
 		text = *it;
@@ -257,7 +268,7 @@ void Editor::arrangePage() {
 		if (strcmp(text.c_str(), "") == 0) {
 			break;
 		}
-		else  s += text;
+		else  s +=text;
 	}
 	//이 시점에서 s에 모든 test.txt가 한 문장으로 처리
 	Editor::data.clear();
@@ -276,7 +287,6 @@ void Editor::arrangePage() {
 		}
 		data[data.size() - 1] = s;//for last Insert
 	}
-	Editor::s.clear();
 	Editor::setPage();
 }//구현 완료
 
@@ -364,7 +374,7 @@ void Editor::del(vector<string> parameter) {
 			for (vector<string>::iterator it = data.begin(); it != data.end(); it++) {
 				tmp += (*it);
 			}
-			tmp.erase(index - 1 + (nowPage)*MAX_LEN * MAX_LINE + (line - 1) * MAX_LEN, byte);//현재 시점 계산식 참고
+			tmp.erase(index-1+ (nowPage)*MAX_LEN * MAX_LINE + (line - 1) * MAX_LEN, byte);//현재 시점 계산식 참고
 			data.clear();
 			if (strcmp(tmp.c_str(), "")) {
 				for (int i = 0; i < tmp.size();) {
@@ -400,7 +410,7 @@ void Editor::del(vector<string> parameter) {
 					data.push_back(text);
 				}
 			}
-		}
+		}//마지막 페이지 일 때.
 		Editor::arrangePage();
 		if (book.size() != 0) {
 			while (IsPageChange()) {
@@ -416,6 +426,10 @@ void Editor::del(vector<string> parameter) {
 }
 
 void Editor::change(vector<string> parameter) {
+	if (!IsBookExist) {
+		Editor::setState("Book is empty.");
+		return;
+	}
 	string msg = parameter[0];
 	string change = parameter[1];
 	fstream tmpStream("tmpFile.txt");
@@ -430,14 +444,18 @@ void Editor::change(vector<string> parameter) {
 	}
 	tmpStream.close();
 	this->arrangePage();
-	Editor::setState("changed Complete. " + msg + "has been changed: " + change);
+	Editor::setState("changed Complete. " + msg + " has been changed: " + change);
 }
 
 string Editor::search(string parameter) {
+	if (!IsBookExist) {
+		Editor::setState("Book is empty.");
+		return "";
+	}
 	string searching = this->book[nowPage];
 	bool find = false;
 	int serLine = 1;
-	int serPage = 1;
+	int serPage = 1;//검색 완료시 어디에 검색 값이 존재하나를 찾기 위한 변수
 	for (vector<string>::iterator it = data.begin(); it != data.end(); it++) {
 		string temp = (*it);
 		if (temp.find(parameter) != string::npos) {
@@ -448,7 +466,7 @@ string Editor::search(string parameter) {
 		if (serLine > 20) {
 			serPage++;
 			serLine = 1;
-		}
+		}//검색 라인이 20라인을 넘으면 한페이지 넘어감.
 	}
 	if (find) {
 		if (serPage == book.size()) {
@@ -468,6 +486,24 @@ string Editor::search(string parameter) {
 
 
 void Editor::terminal() {
+
+	if (data.size() > 0) {
+		string s = data[data.size() - 1];
+		if (s[s.size() - 1] == ' ') {
+			while (s[s.size() - 1] == ' ') {
+				s.erase(s.size() - 1);
+				if (s.size() == 0) {
+					break;
+				}
+			}
+			data[data.size() - 1] = s;
+			ofstream toW("tmpFile.txt");
+			for (vector<string>::iterator it = data.begin(); it != data.end(); it++) {
+				toW << (*it);
+			}
+			toW.close();
+		}
+	}
 	ofstream save("test.txt");
 	ifstream forR("tmpFile.txt");
 	while (!forR.eof()) {
@@ -477,8 +513,6 @@ void Editor::terminal() {
 	}
 	forR.close();
 	save.close();
-	tmpFile.close();
-	myfile.close();
 	remove("tmpFile.txt");
 	setState("Program was terminated. TextFile which you wrote was saved in your file.");
 }

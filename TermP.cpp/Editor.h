@@ -1,5 +1,4 @@
 #pragma once
-#include "View.h"
 #include "fstream"
 #include "string"
 #include "vector"
@@ -11,22 +10,22 @@ private:
 	int nowPage;
 	int lastLine;
 	fstream myfile;
-	fstream tmpFile;
-	string s;
 	void arrangePage();
 	vector<string> data;
 	vector<string> book;
 	void setPage();
 	string stateMessage;
-public:
-	void terminal();
 	bool IsBookExist;
+
+public:
+	bool BookExist();
+	void terminal();
 	int getPage();
 	vector<string> getBook();
 	void setState(string msg);
 	string getState();
 	bool loadFile();
-	bool makeFile();
+	void makeFile();
 	Editor();
 	void prePage();
 	void nextPage();

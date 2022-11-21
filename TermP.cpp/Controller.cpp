@@ -59,8 +59,6 @@ int Controller::decide(string e) {
 			model.setState("Format Error. Insert function's format is i(int line, int index, string message).");
 			return 1;
 		}
-		string result = e.substr(current);
-		parameter.push_back(result);
 		model.insert(parameter);
 		return 1;
 	}
@@ -106,7 +104,7 @@ int Controller::decide(string e) {
 			current = pos + 1;
 		}
 		if (current < 4) {
-			model.setState("Format Error. Change function's format is i(int line, int index, string message).");
+			model.setState("Format Error. Change function's format is c(string msg, string changeMsg).");
 			return 1;
 		}
 		string result = e.substr(current);
@@ -130,6 +128,7 @@ int Controller::decide(string e) {
 	}
 	default: {
 		model.setState("Text Edit Program can service\ni: Insert\nd: Delete\ns: Search\nn: Next Page\np: Previous Page\nt: Terminate.");
+		return 1;
 	}
 	}
 }
@@ -137,7 +136,7 @@ int Controller::decide(string e) {
 
 int Controller::show() {
 	Controller::page = model.getPage();
-	if (model.IsBookExist) {
+	if (model.BookExist()) {
 		Controller::book = model.getBook();
 		sc.outputLine(book[page]);
 	}
