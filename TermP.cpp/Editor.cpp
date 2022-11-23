@@ -114,22 +114,12 @@ void Editor::makeFile() {
 		while (!Editor::myfile.eof()) {
 			string text;
 			getline(myfile, text);
-			if (strcmp(text.c_str(), "") == 0) {
-				int left = s.size() % MAX_LEN;
-				for (int i = 0; i < MAX_LEN - left + 1; i++) {
-					s += " ";
-				}//개행 입력시 한줄 바꿈
-			}
-			else  s += text + " ";
-			//개행문자를 공백문자로 대체
+			s += text;
 		}
 		//이 시점에서 s에 모든 test.txt가 한 문장으로 처리
 		for (int i = 0; i < s.size();) {
 			string text = s.substr(i, MAX_LEN);
 			i += text.size();
-			if (isspace(s[i])) {
-				i++;
-			}
 			data.push_back(text);
 		}
 		s.clear();
@@ -141,7 +131,6 @@ void Editor::makeFile() {
 			i++;
 		}
 		data[data.size() - 1] = s;//for last Insert
-
 		Editor::setPage();
 		myfile.close();
 }//이 시점에서 data는 한 문장씩 끊어서 file을 가지고 있음
@@ -254,22 +243,25 @@ void Editor::arrangePage() {
 	string text;
 	for (vector<string>::iterator it = Editor::data.begin(); it != data.end(); it++) {
 		text = *it;
-		if (text.size()!=0) {
-			int i = text.size()-1;
-			while (text[i] == ' ') {
-				text.erase(i);
-				i--;
-				if (i <= 0) {
-					text = "";
-					break;
+		if (text==data[data.size()-1]) {
+			int i = text.size() - 1;
+			if (i >= 0) {
+				while (text[i] == ' ') {
+					text.erase(i);
+					i--;
+					if (i <= 0) {
+						text = "";
+						break;
+					}
 				}
 			}
 		}
 		if (strcmp(text.c_str(), "") == 0) {
 			break;
 		}
-		else  s +=text;
-	}
+		else  s += text;
+	}//더 이상 바뀐 data에 대해 끝 머리에 추가한 공백 문자열이 유효하지 않을 수 있음
+
 	//이 시점에서 s에 모든 test.txt가 한 문장으로 처리
 	Editor::data.clear();
 	for (int i = 0; i < s.size();) {
@@ -380,9 +372,6 @@ void Editor::del(vector<string> parameter) {
 				for (int i = 0; i < tmp.size();) {
 					string text = tmp.substr((int)i, (int)MAX_LEN);
 					i += text.size();
-					if (isspace(tmp[i])) {
-						i++;
-					}
 					data.push_back(text);
 				}
 			}
@@ -404,9 +393,6 @@ void Editor::del(vector<string> parameter) {
 				for (int i = 0; i < tmp.size();) {
 					string text = tmp.substr((int)i, (int)MAX_LEN);
 					i += text.size();
-					if (isspace(tmp[i])) {
-						i++;
-					}
 					data.push_back(text);
 				}
 			}
@@ -486,7 +472,6 @@ string Editor::search(string parameter) {
 
 
 void Editor::terminal() {
-
 	if (data.size() > 0) {
 		string s = data[data.size() - 1];
 		if (s[s.size() - 1] == ' ') {
