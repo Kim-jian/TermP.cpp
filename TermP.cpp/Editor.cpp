@@ -171,7 +171,7 @@ void Editor::insert(vector<string> parameter) {
 		if (data.size() < MAX_LINE) {
 			MAX = data.size();
 		}
-		if (line > MAX || line <= 0) {
+		if (line > MAX || line < 1) {
 			throw out_of_range("Line parameters are not appropriate.");
 		}
 	}
