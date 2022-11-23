@@ -197,9 +197,9 @@ void Editor::insert(vector<string> parameter) {
 	try {
 		index = stoi(parameter[1]);
 		msg = parameter[2];
-		if (index <= 0 || index >= MAX_LEN) {
+		if (index < 0 || index >= MAX_LEN) {
 			throw std::out_of_range("Index parameters are not appropriate.");
-		}//삽입은 74까지. 75 삽입은 다음 문장에 삽입임
+		}//삽입은 0~74까지. 75 삽입은 다음 문장에 삽입임
 	}
 	catch (std::invalid_argument e) {
 		Editor::setState("Index must be an integer type.");
